@@ -116,6 +116,8 @@ enum Motion {
     NextLongWordEnd,
     LineStart,
     LineEnd,
+    LineDown,
+    LineUp,
 }
 
 impl TryFrom<char> for Motion {
@@ -129,6 +131,8 @@ impl TryFrom<char> for Motion {
             'B' => Ok(Self::PrevLongWordStart),
             '$' => Ok(Self::LineEnd),
             '0' => Ok(Self::LineStart),
+            'j' => Ok(Self::LineDown),
+            'k' => Ok(Self::LineUp),
             _ => Err(()),
         }
     }
@@ -292,6 +296,10 @@ impl EvilCommands {
                         }
                         Motion::LineStart | Motion::LineEnd => {
                             Self::get_partial_line_based_selection(cx, motion).ok()
+                        }
+
+                        Motion::LineDown | Motion::LineUp => {
+                            Self::get_line_motion_selection(cx, motion).ok()
                         }
                     };
                 } else {
@@ -557,6 +565,41 @@ impl EvilCommands {
 
             Range::new(anchor, head)
         });
+    }
+
+    fn get_line_motion_selection(cx: &mut Context, motion: &Motion) -> Result<Selection, String> {
+        let (view, doc) = current!(cx.editor);
+        let text = doc.text();
+        let count = Self::context().count.unwrap_or(1);
+
+        // Determine line offset
+        let line_offset = match motion {
+            Motion::LineDown => count as isize,
+            Motion::LineUp => -(count as isize),
+            _ => return Err("Invalid motion".to_string()),
+        };
+
+        let selection = doc.selection(view.id).clone().transform(|range| {
+            let (current_line, _) = range.line_range(text.slice(..));
+
+            // Calculate target line with bounds checking
+            let target_line = if line_offset > 0 {
+                (current_line + line_offset as usize).min(text.len_lines() - 1)
+            } else {
+                current_line.saturating_sub((-line_offset) as usize)
+            };
+
+            // Select from start of first line to end of last line
+            let start_line = current_line.min(target_line);
+            let end_line = current_line.max(target_line);
+
+            let start = text.line_to_char(start_line);
+            let end = text.line_to_char((end_line + 1).min(text.len_lines()));
+
+            Range::new(start, end)
+        });
+
+        Ok(selection)
     }
 
     fn get_paragraph_selection(cx: &mut Context) -> Option<Selection> {

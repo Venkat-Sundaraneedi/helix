@@ -17,14 +17,9 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "F" => evil_find_prev_char,
         "r" => replace,
         "R" => replace_with_yanked,
-        "A-." =>  repeat_last_motion,
 
         "~" => switch_case,
-        "`" => switch_to_lowercase,
-        "A-`" => switch_to_uppercase,
 
-        "home" => goto_line_start,
-        "end" => goto_line_end,
 
         //"w" => move_next_word_start,
         //"b" => move_prev_word_start,
@@ -35,32 +30,19 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         //"E" => move_next_long_word_end,
 
         "v" => evil_characterwise_select_mode,
-        "V" => evil_linewise_select_mode,
         // TODO (redundant with count + gg anyway?): "G" => goto_line,
         "g" => { "Goto"
             "g" => evil_goto_line_or_first_line,
             "|" => goto_column,
-            "e" => goto_last_line,
             "f" => goto_file,
-            "h" => goto_line_start,
-            "l" => goto_line_end,
-            "s" => goto_first_nonwhitespace,
             "d" => goto_definition,
             "D" => goto_declaration,
             "y" => goto_type_definition,
             "r" => goto_reference,
             "i" => goto_implementation,
-            "t" => goto_window_top,
-            "c" => goto_window_center,
-            "b" => goto_window_bottom,
             "a" => goto_last_accessed_file,
             "m" => goto_last_modified_file,
-            "n" => goto_next_buffer,
-            "p" => goto_previous_buffer,
-            "k" => move_anchored_line_up,
-            "j" => move_anchored_line_down,
             "." => goto_last_modification,
-            "w" => goto_word,
         },
         ":" => command_mode,
 
@@ -70,11 +52,6 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "A" => insert_at_line_end,
         "o" => open_below,
         "O" => open_above,
-
-        //"d" => delete_selection,
-        //"A-d" => delete_selection_noyank,
-        //"c" => change_selection,
-        //"A-c" => change_selection_noyank,
 
         "C" => copy_selection_on_next_line,
         "A-C" => copy_selection_on_prev_line,
@@ -92,14 +69,9 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "A-I" | "A-S-down" => select_all_children,
         "A-p" | "A-left" => select_prev_sibling,
         "A-n" | "A-right" => select_next_sibling,
-        "A-e" => move_parent_node_end,
+        // "A-e" => move_parent_node_end,
         "A-b" => move_parent_node_start,
         "A-a" => select_all_siblings,
-
-        //"%" => select_all,
-        //"x" => extend_line_below,
-        //"X" => extend_to_line_bounds,
-        //"A-x" => shrink_to_line_bounds,
 
         "m" => { "Match"
             "m" => match_brackets,
@@ -109,7 +81,6 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
             "a" => select_textobject_around,
             "i" => select_textobject_inner,
         },
-        "%" => match_brackets,
         "[" => { "Left bracket"
             "d" => goto_prev_diag,
             "D" => goto_first_diag,
@@ -146,7 +117,6 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "?" => rsearch,
         "n" => search_next,
         "N" => search_prev,
-        //"*" => search_selection,
 
         "*" => evil_cursor_forward_search,
         "#" => evil_cursor_backward_search,
@@ -156,10 +126,7 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "A-u" => earlier,
         "A-U" => later,
 
-        //"y" => yank,
-        // yank_all
         "p" => paste_after,
-        // paste_all
         "P" => paste_before,
 
         "Q" => record_macro,
@@ -175,9 +142,6 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
 
         "," => keep_primary_selection,
         "A-," => remove_primary_selection,
-
-        // "q" => record_macro,
-        // "Q" => replay_macro,
 
         "&" => align_selections,
         "_" => trim_selections,
@@ -218,29 +182,13 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
             },
         },
 
-        // move under <space>c
-        "C-c" => toggle_comments,
-
-        // z family for save/restore/combine from/to sels from register
-
-        "C-i" | "tab" => jump_forward, // tab == <C-i>
-        "C-o" => jump_backward,
-        "C-s" => save_selection,
-
         "space" => { "Space"
-            "f" => file_picker,
-            "F" => file_picker_in_current_directory,
-            "e" => file_explorer,
-            "E" => file_explorer_in_current_buffer_directory,
-            "b" => buffer_picker,
+            "A" => file_explorer,
+            "a" => file_explorer_in_current_buffer_directory,
+            "e" => file_picker_in_current_directory,
+            "E" => file_picker_in_current_buffer_directory,
             "j" => jumplist_picker,
-            "s" => symbol_picker,
-            "S" => workspace_symbol_picker,
-            "d" => diagnostics_picker,
-            "D" => workspace_diagnostics_picker,
             "g" => changed_file_picker,
-            "a" => code_action,
-            "'" => last_picker,
             "G" => { "Debug (experimental)" sticky=true
                 "l" => dap_launch,
                 "r" => dap_restart,
@@ -262,41 +210,25 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
                 "e" => dap_enable_exceptions,
                 "E" => dap_disable_exceptions,
             },
-            "w" => { "Window"
-                "C-w" | "w" => rotate_view,
-                "C-s" | "s" => hsplit,
-                "C-v" | "v" => vsplit,
-                "C-t" | "t" => transpose_view,
-                "f" => goto_file_hsplit,
-                "F" => goto_file_vsplit,
-                "C-q" | "q" => wclose,
-                "C-o" | "o" => wonly,
-                "C-h" | "h" | "left" => jump_view_left,
-                "C-j" | "j" | "down" => jump_view_down,
-                "C-k" | "k" | "up" => jump_view_up,
-                "C-l" | "l" | "right" => jump_view_right,
-                "H" => swap_view_left,
-                "J" => swap_view_down,
-                "K" => swap_view_up,
-                "L" => swap_view_right,
-                "n" => { "New split scratch buffer"
-                    "C-s" | "s" => hsplit_new,
-                    "C-v" | "v" => vsplit_new,
-                },
-            },
-            "y" => yank_to_clipboard,
-            "Y" => yank_main_selection_to_clipboard,
-            "p" => paste_clipboard_after,
-            "P" => paste_clipboard_before,
-            "R" => replace_selections_with_clipboard,
-            "/" => global_search,
-            "k" => hover,
-            "r" => rename_symbol,
             "h" => select_references_to_symbol_under_cursor,
-            "c" => toggle_comments,
-            "C" => toggle_block_comments,
-            "A-c" => toggle_line_comments,
-            "?" => command_palette,
+            "k" => hover,
+            ";" => toggle_comments,
+            "c" => { "Code"
+                "a" => code_action,
+                "r" => rename_symbol,
+                "s" => symbol_picker,
+                "S" => workspace_symbol_picker,
+            },
+
+            "s" => { "Search"
+                "k" => command_palette,
+                "g" => global_search,
+                "d" => diagnostics_picker,
+                "D" => workspace_diagnostics_picker,
+            },
+            "f" => {"Find"
+                "b" => buffer_picker,
+            },
         },
         "z" => { "View"
             "z" | "c" => align_view_center,
@@ -355,11 +287,17 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "E" => evil_next_long_word_end,
         "W" => evil_next_long_word_start,
 
-        "0" => goto_line_start,
-        "$" => goto_line_end,
-        "^" => goto_first_nonwhitespace,
         "G" => evil_goto_line_or_last_line,
         "del" => delete_selection,
+
+        // 0xgsvs custom keymaps
+        "A-e" => match_brackets,
+        "A-v" => evil_linewise_select_mode,
+        "S-h" => goto_first_nonwhitespace,
+        "S-l" => goto_line_end,
+        "tab" => goto_next_buffer,
+        "S-tab" => goto_previous_buffer,
+
     });
     let mut select = normal.clone();
     select.merge_nodes(keymap!({ "Select mode"
@@ -378,7 +316,7 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         //"B" => extend_prev_long_word_start,
         //"E" => extend_next_long_word_end,
 
-        "A-e" => extend_parent_node_end,
+        // "A-e" => extend_parent_node_end,
         "A-b" => extend_parent_node_start,
 
         //"n" => extend_search_next,
@@ -397,6 +335,13 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
             "k" => extend_anchored_line_up,
             "j" => extend_anchored_line_down,
             "w" => extend_to_word,
+        },
+
+        "A-e" => match_brackets,
+        "S-h" => goto_line_start,
+        "S-l" => goto_line_end,
+        "space" => {"Space"
+            ";" => toggle_comments,
         },
     }));
     let insert = keymap!({ "Insert mode"
@@ -426,6 +371,15 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
         "pagedown" => page_down,
         "home" => goto_line_start,
         "end" => goto_line_end_newline,
+
+        //0xgsvs custom keymaps
+        "A-h" => move_char_left,
+        "A-l" => move_char_right,
+        "A-j" => move_line_down,
+        "A-k" => move_line_up,
+        "j" => {"normal mode"
+            "k" => normal_mode,
+        },
     });
     hashmap!(
         Mode::Normal => normal,
