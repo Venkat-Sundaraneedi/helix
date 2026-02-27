@@ -558,7 +558,7 @@ pub struct SmartTabConfig {
 impl Default for SmartTabConfig {
     fn default() -> Self {
         SmartTabConfig {
-            enable: true,
+            enable: false,
             supersede_menu: false,
         }
     }
@@ -689,20 +689,19 @@ impl Default for StatusLineConfig {
         use StatusLineElement as E;
 
         Self {
-            left: vec![
-                E::Mode,
-                E::Spinner,
+            left: vec![E::Mode, E::Spacer, E::VersionControl, E::Spacer, E::Spinner],
+            center: vec![
                 E::FileName,
                 E::ReadOnlyIndicator,
                 E::FileModificationIndicator,
             ],
-            center: vec![],
             right: vec![
                 E::Diagnostics,
                 E::Selections,
                 E::Register,
                 E::Position,
                 E::FileEncoding,
+                E::FileType,
             ],
             separator: String::from("│"),
             mode: ModeConfig::default(),
@@ -1214,7 +1213,7 @@ impl Default for Config {
             whitespace: WhitespaceConfig::default(),
             bufferline: BufferLine::default(),
             indent_guides: IndentGuidesConfig::default(),
-            color_modes: false,
+            color_modes: true,
             soft_wrap: SoftWrap {
                 enable: Some(false),
                 ..SoftWrap::default()
@@ -1224,7 +1223,7 @@ impl Default for Config {
             continue_comments: true,
             workspace_lsp_roots: Vec::new(),
             default_line_ending: LineEndingConfig::default(),
-            insert_final_newline: true,
+            insert_final_newline: false,
             atomic_save: true,
             trim_final_newlines: false,
             trim_trailing_whitespace: false,
@@ -1270,7 +1269,25 @@ use futures_util::stream::{Flatten, Once};
 
 type Diagnostics = BTreeMap<Uri, Vec<(lsp::Diagnostic, DiagnosticProvider)>>;
 
+#[derive(Copy, Clone)]
+pub enum EvilSelectMode {
+    CharacterWise,
+    LineWise,
+    //BlockWise,
+}
+
+impl std::fmt::Display for EvilSelectMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::CharacterWise => f.write_str(""),
+            Self::LineWise => f.write_str("LINE"),
+        }
+    }
+}
+
 pub struct Editor {
+    pub evil_select_mode: EvilSelectMode,
+
     /// Current editing mode.
     pub mode: Mode,
     pub tree: Tree,
@@ -1426,6 +1443,7 @@ impl Editor {
         area.height -= 1;
 
         Self {
+            evil_select_mode: EvilSelectMode::CharacterWise,
             mode: Mode::Normal,
             tree: Tree::new(area),
             next_document_id: DocumentId::default(),
