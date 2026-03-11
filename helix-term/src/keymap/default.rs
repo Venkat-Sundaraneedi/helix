@@ -43,6 +43,8 @@ pub fn default() -> HashMap<Mode, KeyTrie> {
             "a" => goto_last_accessed_file,
             "m" => goto_last_modified_file,
             "." => goto_last_modification,
+            "w" => evil_goto_word,
+            "W" => evil_extend_to_word,
         },
         ":" => command_mode,
 
