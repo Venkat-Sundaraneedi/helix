@@ -80,6 +80,7 @@ enum TextObject {
     SingleQuotes,
     DoubleQuotes,
     Backticks,
+    Match,
     // TODO: SquareRoundBlock,
     // TODO: SquareCurlyBlock,
     // TODO: Tags,
@@ -94,15 +95,15 @@ impl TryFrom<char> for TextObject {
             'w' => Ok(Self::Word),
             // TODO: 's' => Ok(Self::Sentence),
             '[' | ']' => Ok(Self::SquareBrackets),
-            '(' | ')' => Ok(Self::RoundBrackets),
-            '{' | '}' => Ok(Self::CurlyBrackets),
+            '(' | ')' | 'b' => Ok(Self::RoundBrackets),
+            '{' | '}' | 'B' => Ok(Self::CurlyBrackets),
             '<' | '>' => Ok(Self::AngleBrackets),
-            '\'' => Ok(Self::SingleQuotes),
-            '"' => Ok(Self::DoubleQuotes),
+            '\'' | 'q' => Ok(Self::SingleQuotes),
+            '"' | 'Q' => Ok(Self::DoubleQuotes),
             '`' => Ok(Self::Backticks),
+            'm' => Ok(Self::Match),
             // TODO: 'b' => Ok(Self::SquareRoundBlock),
             // TODO: 'B' => Ok(Self::SquareCurlyBlock),
-            // TODO: 't' => Ok(Self::Tags),
             // TODO: 't' => Ok(Self::Tags),
             _ => Err(()),
         }
@@ -270,14 +271,15 @@ impl EvilCommands {
                     selection = match text_object {
                         TextObject::Paragraph => Self::get_paragraph_selection(cx),
                         TextObject::Word => Self::get_bidirectional_word_based_selection(cx).ok(),
-                        TextObject::SquareBrackets => Self::get_surrounding_char_selection(cx, '['),
-                        TextObject::RoundBrackets => Self::get_surrounding_char_selection(cx, '('),
-                        TextObject::CurlyBrackets => Self::get_surrounding_char_selection(cx, '{'),
-                        TextObject::AngleBrackets => Self::get_surrounding_char_selection(cx, '<'),
+                        TextObject::SquareBrackets => Self::get_surrounding_char_selection(cx, Some('[')),
+                        TextObject::RoundBrackets => Self::get_surrounding_char_selection(cx, Some('(')),
+                        TextObject::CurlyBrackets => Self::get_surrounding_char_selection(cx, Some('{')),
+                        TextObject::AngleBrackets => Self::get_surrounding_char_selection(cx, Some('<')),
                         // TODO: TextObject::Sentence => todo!(),
-                        TextObject::SingleQuotes => Self::get_surrounding_char_selection(cx, '\''),
-                        TextObject::DoubleQuotes => Self::get_surrounding_char_selection(cx, '"'),
-                        TextObject::Backticks => Self::get_surrounding_char_selection(cx, '`'),
+                        TextObject::SingleQuotes => Self::get_surrounding_char_selection(cx, Some('\'')),
+                        TextObject::DoubleQuotes => Self::get_surrounding_char_selection(cx, Some('"')),
+                        TextObject::Backticks => Self::get_surrounding_char_selection(cx, Some('`')),
+                        TextObject::Match => Self::get_surrounding_char_selection(cx, None),
                         // TODO: TextObject::SquareRoundBlock => todo!(),
                         // TODO: TextObject::SquareCurlyBlock => todo!(),
                         // TODO: TextObject::Tags => Self::get_treesitter_object_selection(cx, "tag"), // TextObject::Tags => todo!(),
@@ -454,7 +456,7 @@ impl EvilCommands {
 
     fn get_surrounding_char_selection(
         cx: &mut Context,
-        surrounding_char: char,
+        surrounding_char: Option<char>,
     ) -> Option<Selection> {
         let (view, doc) = current!(cx.editor);
         let text = doc.text().slice(..);
@@ -478,16 +480,37 @@ impl EvilCommands {
 
         // See also: select_textobject() in commands.rs
 
-        return Some(doc.selection(view.id).clone().transform(|range| {
-            return textobject::textobject_pair_surround(
-                doc.syntax(),
-                text,
-                range,
-                ts_modifier,
-                surrounding_char,
-                Self::context().count.unwrap_or(1),
-            );
+
+ return Some(doc.selection(view.id).clone().transform(|range| {
+            match surrounding_char {
+                Some(ch) => textobject::textobject_pair_surround(
+                    doc.syntax(),
+                    text,
+                    range,
+                    ts_modifier,
+                    ch,
+                    Self::context().count.unwrap_or(1),
+                ),
+                None => textobject::textobject_pair_surround_closest(
+                    doc.syntax(),
+                    text,
+                    range,
+                    ts_modifier,
+                    Self::context().count.unwrap_or(1),
+                ),
+            }
         }));
+
+        // return Some(doc.selection(view.id).clone().transform(|range| {
+        //     return textobject::textobject_pair_surround(
+        //         doc.syntax(),
+        //         text,
+        //         range,
+        //         ts_modifier,
+        //         surrounding_char,
+        //         Self::context().count.unwrap_or(1),
+        //     );
+        // }));
     }
 
     fn get_partial_line_based_selection(
