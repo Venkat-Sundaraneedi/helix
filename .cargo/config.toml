@@ -10,8 +10,9 @@
 [target."cfg(all())"]
 rustflags = ["--cfg", "tokio_unstable", "-C", "target-feature=-crt-static"]
 
+[build]
+rustc-wrapper = "sccache"
 
 [alias]
 xtask = "run --package xtask --"
 integration-test = "test --features integration --profile integration --workspace --test integration"
-
